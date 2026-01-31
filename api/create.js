@@ -15,11 +15,11 @@ export default async function handler(req, res) {
   const zoneId = process.env.CLOUDFLARE_ZONE_ID;
 
   const data = {
-    type: 'A', // Ganti CNAME jika targetnya domain
+    type: 'A', 
     name: `${subdomain}.${rootDomain}`,
     content: target,
-    ttl: 1,
-    proxied: true,
+    ttl: 1, // 1 artinya Auto TTL
+    proxied: false, // <--- INI PENTING: False artinya "Abu-abu" (DNS Only)
   };
 
   try {
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: result.errors[0]?.message || 'Gagal' });
     }
 
-    return res.status(200).json({ success: true, message: `Subdomain ${subdomain}.${rootDomain} berhasil!` });
+    return res.status(200).json({ success: true, message: `Subdomain ${subdomain}.${rootDomain} berhasil dibuat (DNS Only)!` });
   } catch (error) {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
