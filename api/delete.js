@@ -1,20 +1,21 @@
+// File: api/delete.js
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { subdomain } = req.body;
-  if (!subdomain) {
-    return res.status(400).json({ error: 'Nama subdomain wajib diisi' });
+  // Terima zoneId dan zoneName dari body
+  const { subdomain, zoneId, zoneName } = req.body;
+
+  if (!subdomain || !zoneId || !zoneName) {
+    return res.status(400).json({ error: 'Data tidak lengkap (Pilih domain terlebih dahulu)' });
   }
 
-  const rootDomain = process.env.ROOT_DOMAIN;
   const apiKey = process.env.CLOUDFLARE_API_TOKEN;
-  const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-  const fullDomain = `${subdomain}.${rootDomain}`;
+  const fullDomain = `${subdomain}.${zoneName}`;
 
   try {
-    // 1. Cari ID Subdomain dulu ke Cloudflare
+    // 1. Cari ID Subdomain di Zone yang spesifik (zoneId)
     const searchRes = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records?name=${fullDomain}`,
       {
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
 
     const recordId = searchResult.result[0].id;
 
-    // 2. Hapus berdasarkan ID
+    // 2. Hapus berdasarkan ID record dan Zone ID
     const deleteRes = await fetch(
       `https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records/${recordId}`,
       {
